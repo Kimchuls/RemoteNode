@@ -39,6 +39,7 @@ namespace RDMAEngine
             config.gid_idx = (u_int32_t)document["gid_idx"].GetInt();
         }
     }
+
     int RDMA_Manager::sock_connect()
     {
         struct addrinfo *resolved_addr = NULL;
@@ -340,7 +341,7 @@ namespace RDMAEngine
         return rc;
     }
 
-    int RDMA_Manager::poll_completion()
+    int RDMA_Manager::poll_completion(long unsigned int max_poll_cq_timeout)
     {
         struct ibv_wc wc;
         unsigned long start_time_msec;
@@ -356,7 +357,7 @@ namespace RDMAEngine
             poll_result = ibv_poll_cq(res->cq, 1, &wc);
             gettimeofday(&cur_time, NULL);
             cur_time_msec = (cur_time.tv_sec * 1000) + (cur_time.tv_usec / 1000);
-        } while ((poll_result == 0) && ((cur_time_msec - start_time_msec) < MAX_POLL_CQ_TIMEOUT));
+        } while ((poll_result == 0) && ((cur_time_msec - start_time_msec) < max_poll_cq_timeout));
         if (poll_result < 0)
         {
             /* poll CQ failed */
@@ -530,7 +531,7 @@ namespace RDMAEngine
         return rc;
     }
 
-    int RDMA_Manager::RDMA_Send()
+    int RDMA_Manager::RDMA_Send(long unsigned int max_poll_cq_timeout)
     {
         int rc = 0;
         char temp_char;
@@ -550,7 +551,7 @@ namespace RDMAEngine
         }
         /* sync to make sure that both sides are in states that they can connect to prevent packet loose */
 
-        rc = poll_completion();
+        rc = poll_completion(max_poll_cq_timeout);
         if (rc)
         {
             fprintf(stderr, "poll completion failed\n");
@@ -560,7 +561,7 @@ namespace RDMAEngine
         return rc;
     }
 
-    int RDMA_Manager::RDMA_Receive()
+    int RDMA_Manager::RDMA_Receive(long unsigned int max_poll_cq_timeout)
     {
         int rc = 0;
         char temp_char;
@@ -580,7 +581,7 @@ namespace RDMAEngine
             goto RDMA_Receive_exit;
         }
 
-        rc = poll_completion();
+        rc = poll_completion(max_poll_cq_timeout);
         if (rc)
         {
             fprintf(stderr, "poll completion failed\n");
@@ -590,16 +591,17 @@ namespace RDMAEngine
         return rc;
     }
 
-    int RDMA_Manager::RDMA_Read(char *char_set)
+    // int RDMA_Manager::RDMA_Read(char *char_set)
+    int RDMA_Manager::RDMA_Read()
     {
-        strcpy(res->buf, char_set);
-        char temp_char;
-        char temp_send_R[] = "R";
-        if (sock_sync_data(res->sock, 1, temp_send_R, &temp_char)) /* just send a dummy char back and forth */
-        {
-            fprintf(stderr, "sync error before RDMA ops\n");
-            return 1;
-        }
+        // strcpy(res->buf, char_set);
+        // char temp_char;
+        // char temp_send_R[] = "R";
+        // if (sock_sync_data(res->sock, 1, temp_send_R, &temp_char)) /* just send a dummy char back and forth */
+        // {
+        //     fprintf(stderr, "sync error before RDMA ops\n");
+        //     return 1;
+        // }
         return 0;
     }
 

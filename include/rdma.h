@@ -22,6 +22,7 @@
 #include "../bin/rapidjson/writer.h"
 #include "../bin/rapidjson/stringbuffer.h"
 #define MAX_POLL_CQ_TIMEOUT 2000
+#define WAIT_RESPONSE_POLL_CQ_TIMEOUT int(1e10)
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 static inline uint64_t htonll(uint64_t x) { return bswap_64(x); }
 static inline uint64_t ntohll(uint64_t x) { return bswap_64(x); }
@@ -112,13 +113,14 @@ namespace RDMAEngine
 
         int resources_destroy();
         int sock_sync_data(int sock, int xfer_size, char *local_data, char *remote_data);
-        int poll_completion();
+        int poll_completion(long unsigned int max_poll_cq_timeout);
         int post_send(int opcode);
         int post_receive();
 
-        int RDMA_Send();
-        int RDMA_Receive();
-        int RDMA_Read(char* char_set);
+        int RDMA_Send(long unsigned int max_poll_cq_timeout);
+        int RDMA_Receive(long unsigned int max_poll_cq_timeout);
+        int RDMA_Read();
+        // int RDMA_Read(char* char_set);
         int RDMA_Write();
         int socket_connect();
         int device_connect();
