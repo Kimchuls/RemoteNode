@@ -1,17 +1,21 @@
 // 01_hello_thread.cpp
 
 #include <iostream>
-#include <thread> // ①
+#include <thread> 
+#include<vector>
 
-using namespace std; // ②
+using namespace std; 
 
-void hello() { // ③
-  cout << "Hello World from new thread." << endl;
-}
+struct node{
+  int x;
+  int y;
+};
 
 int main() {
-  thread t(hello); // ④
-  t.join(); // ⑤
+  vector<node> vi;
+  for (int i=0;i<6;i++)vi.emplace_back((node){i+6,i+1});
+  auto it=vi.begin();
+  cout<<(it+4)->x<<endl;
 
   return 0;
 }

@@ -7,38 +7,11 @@
 #include <string>
 #include <stdlib.h>
 #include "rdma.h"
+#include <map>
 
 using namespace std;
-using namespace rapidjson;
 
-string vector2string(vector<vector<string>> &file, int id1, int id2)
-{
-    string out = "{";
-    long unsigned i, j;
-    for (i = id1; i < file.size() && i <= id2; i++)
-    {
-        string outp = "{";
-        for (j = 0; j < file[i].size(); j++)
-        {
-            outp += to_string(j) + ":" + file[i][j];
-            if (j != file[i].size() - 1)
-            {
-                outp += ",";
-            }
-        }
-        outp += "}";
-        out += outp;
-        if (i < id2)
-        {
-            out += ",";
-        }
-    }
-    out += "}";
-    cout << "vector2string " << out << endl;
-    return out;
-}
-
-void work(vector<vector<string>> &file)
+void work()
 {
 	bool config_flag = true;
 	int rc = 1;
@@ -69,14 +42,7 @@ void work(vector<vector<string>> &file)
 			fprintf(stderr, "failed to rdma_mg_1 RDMA_Receive\n");
 			goto main_exit;
 		}
-		/* after polling the completion we have the message in the client buffer too */
 		fprintf(stdout, "Message is: '%s', %ld\n", rdma_mg_1->res->buf, strlen(rdma_mg_1->res->buf));
-		// strcpy(rdma_mg_1->res->buf, "already");
-		// if (rdma_mg_1->RDMA_Send(MAX_POLL_CQ_TIMEOUT))
-		// {
-		// 	fprintf(stderr, "failed to rdma_mg_1 RDMA_Send\n");
-		// 	goto main_exit;
-		// }
 		char in_chars[30];
 		int id1, id2;
 		strcpy(in_chars, rdma_mg_1->res->buf);
@@ -84,14 +50,6 @@ void work(vector<vector<string>> &file)
 		fprintf(stdout, "order name: %s\n", sub_chars);
 		if (0 == strcmp(sub_chars, "read"))
 		{
-			id1 = stoi(strtok(NULL, ","));
-			id2 = stoi(strtok(NULL, ","));
-			fprintf(stdout, "Message is: '%s', %d, %d\n", sub_chars, id1, id2);
-			string out_string = "write " + vector2string(file, id1, id2);
-			char *out_chars = const_cast<char *>(out_string.c_str());
-			strcpy(rdma_mg_2->res->buf, out_chars);
-			fprintf(stdout, "Now replacing it with: '%s'\n", rdma_mg_2->res->buf);
-
 			strcpy(rdma_mg_1->res->buf, "already");
 			if (rdma_mg_1->RDMA_Send(MAX_POLL_CQ_TIMEOUT))
 			{
@@ -145,73 +103,9 @@ main_exit:
 	if (rdma_mg_2->config.dev_name)
 		free((char *)rdma_mg_2->config.dev_name);
 	fprintf(stdout, "\ntest result is %d\n", rc);
-	// return rc;
 }
-#include <map>
-
-void csv_data_load(char *filename, vector<vector<string>> &file)
-{
-	ifstream csv_data(filename);
-	string line;
-	if (!csv_data.is_open())
-	{
-		cout << "Error: opening file fail" << endl;
-		exit(1);
-	}
-	istringstream sin; //将整行字符串line读入到字符串istringstream中
-	// vector<vector<string>> file;
-	vector<string> words; //声明一个字符串向量
-	string word;
-
-	// 读取标题行
-	// getline(csv_data, line);
-	// 读取数据
-	while (getline(csv_data, line))
-	{
-		sin.clear();
-		sin.str(line);
-		words.clear();
-		while (getline(sin, word, ',')) //将字符串流sin中的字符读到field字符串中，以逗号为分隔符
-		{
-			words.push_back(word); //将每一格中的数据逐个push
-								   // cout << word;
-								   // cout << atol(word.c_str());
-		}
-		file.push_back(words);
-		// cout << endl;
-		// do something。。。
-	}
-	csv_data.close();
-}
-
-void csv_write()
-{
-	// char *fn = "madedata.csv";
-	ofstream outFile;
-	outFile.open("loaddata.csv", ios::out | ios::trunc);
-	for (int x = 1; x <= 10000; x++)
-	{
-		std::string str = "";
-		for (int i = 1; i <= 50; i++)
-		{
-			int flag;
-			flag = rand() % 2;						   //随机使flag为1或0，为1就是大写，为0就是小写
-			if (flag == 1)							   //如果flag=1
-				str += rand() % ('Z' - 'A' + 1) + 'A'; //追加大写字母的ascii码
-			else
-				str += rand() % ('z' - 'a' + 1) + 'a'; //如果flag=0，追加为小写字母的ascii码
-		}
-		outFile << str << "," << to_string(x * 10000 + x) << endl;
-	}
-	outFile.close();
-}
-
 int main(int argc, char *argv[])
 {
-	// csv_write();
-	vector<vector<string>> file;
-	csv_data_load("loaddata.csv", file);
-	work(file);
-	// work(file);
+	work();
 	return 0;
 }

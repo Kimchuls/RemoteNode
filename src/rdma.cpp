@@ -614,7 +614,7 @@ namespace RDMAEngine
             fprintf(stderr, "sync error before RDMA ops\n");
             return 1;
         }
-        fprintf(stdout, "Contents of server buffer: '%s'\n", res->buf);
+        // fprintf(stdout, "Contents of server buffer: '%s'\n", res->buf);
         return 0;
     }
 
