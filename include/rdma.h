@@ -37,7 +37,7 @@ static inline uint64_t ntohll(uint64_t x) { return x; }
 #define RDMAMSGR "RDMA read operation 36 "
 #define RDMAMSGW "RDMA write operation 36"
 // #define BUFF_SIZE (strlen(MSG) + 1)
-#define BUFF_SIZE 1024 * 1024 * 1024
+#define BUFF_SIZE 1024 * 1024 * 8
 namespace RDMAEngine
 {
     /* structure of test parameters */
